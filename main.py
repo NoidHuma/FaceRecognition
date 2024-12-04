@@ -43,3 +43,17 @@ val_gen = val_datagen.flow_from_directory(
 emotions = list(train_gen.class_indices.keys())
 
 print(emotions)
+
+model = keras.models.Sequential([
+    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(48, 48, 1)),
+    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.MaxPooling2D(2, 2),
+
+    layers.Flatten(),
+    layers.Dense(64, activation='relu'),
+    layers.BatchNormalization(),
+    layers.Dense(32, activation='relu'),
+    layers.Dropout(0.3),
+    layers.BatchNormalization(),
+    layers.Dense(7, activation='softmax')
+])
