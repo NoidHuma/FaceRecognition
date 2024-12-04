@@ -21,15 +21,6 @@ warnings.filterwarnings('ignore')
 
 train_path = 'dataset/train'
 val_path = 'dataset/test'
-classes = os.listdir(train_path)
-print(classes)
-
-
-count = []
-for cat in classes:
-    count.append(len(os.listdir(f'{train_path}/{cat}')))
-sb.barplot(x=classes, y=count)
-plt.show()
 
 
 train_datagen = ImageDataGenerator(rescale=1. / 255)
