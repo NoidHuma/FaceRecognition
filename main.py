@@ -19,14 +19,15 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-path = 'dataset/train'
-classes = os.listdir(path)
+train_path = 'dataset/train'
+val_path = 'dataset/test'
+classes = os.listdir(train_path)
 print(classes)
 
 
 count = []
 for cat in classes:
-    count.append(len(os.listdir(f'{path}/{cat}')))
+    count.append(len(os.listdir(f'{train_path}/{cat}')))
 sb.barplot(x=classes, y=count)
 plt.show()
 
@@ -35,17 +36,19 @@ train_datagen = ImageDataGenerator(rescale=1. / 255)
 val_datagen = ImageDataGenerator(rescale=1. / 255)
 
 train_gen = train_datagen.flow_from_directory(
-    'train',
+    train_path,
     target_size=(48, 48),
     batch_size=64,
     color_mode="grayscale",
     class_mode='categorical')
 
 val_gen = val_datagen.flow_from_directory(
-    'test',
+    val_path,
     target_size=(48, 48),
     batch_size=64,
     color_mode="grayscale",
     class_mode='categorical')
 
+emotions = list(train_gen.class_indices.keys())
 
+print(emotions)
