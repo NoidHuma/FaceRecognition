@@ -22,7 +22,6 @@ warnings.filterwarnings('ignore')
 train_path = 'dataset/train'
 val_path = 'dataset/test'
 
-
 train_datagen = ImageDataGenerator(rescale=1. / 255)
 val_datagen = ImageDataGenerator(rescale=1. / 255)
 
@@ -41,7 +40,6 @@ val_gen = val_datagen.flow_from_directory(
     class_mode='categorical')
 
 emotions = list(train_gen.class_indices.keys())
-
 print(emotions)
 
 model = keras.models.Sequential([
@@ -57,3 +55,9 @@ model = keras.models.Sequential([
     layers.BatchNormalization(),
     layers.Dense(7, activation='softmax')
 ])
+
+model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
