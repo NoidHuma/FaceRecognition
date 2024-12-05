@@ -78,9 +78,17 @@ class MyCallback(tf.keras.callbacks.Callback):
 es = EarlyStopping(patience=3, monitor='val_accuracy', restore_best_weights=True)
 lr = ReduceLROnPlateau(monitor='val_loss', patience=2, factor=0.5, verbose=1)
 
-
 history = model.fit(train_gen,
                     validation_data=val_gen,
                     epochs=5,
                     verbose=1,
                     callbacks=[es, lr, MyCallback()])
+
+
+def plot_image(img, emoj):
+    wmin = 256
+    hmin = 256
+
+    emoj = cv2.resize(emoj, (wmin, hmin))
+    img = cv2.resize(img, (wmin, hmin))
+    cv2.imshow('Images', cv2.hconcat([img, emoj]))
