@@ -7,7 +7,6 @@ import os
 from keras.models import load_model
 
 import warnings
-
 warnings.filterwarnings('ignore')
 
 
@@ -23,3 +22,10 @@ def plot_image(img, emoj):
     emoj = cv2.resize(emoj, (wmin, hmin))
     img = cv2.resize(img, (wmin, hmin))
     cv2.imshow('Images', cv2.hconcat([img, emoj]))
+
+
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+img = cv2.imread('images/sad4.jpg')
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+faces = face_cascade.detectMultiScale(gray)
