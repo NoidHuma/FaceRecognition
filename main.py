@@ -34,3 +34,24 @@ if len(faces) > 0:
     largest_face = max(faces, key=lambda face: face[2] * face[3])
 else:
     largest_face = None
+
+if largest_face is not None:
+    x, y, w, h = largest_face
+
+    gray = cv2.resize(gray[x:x + w - 10, y:y + h + 10], (48, 48))
+    gray = np.expand_dims(gray, axis=-1)
+    gray = np.expand_dims(gray, axis=0)
+
+    pred = model.predict(gray)
+    idx = pred.argmax(axis=-1)[0]
+
+    print(classes[idx])
+    emoj = cv2.imread(f'emojis/{classes[idx]}.jpg')
+
+    plot_image(img, emoj)
+else:
+    print("Лица не найдены")
+
+# Ожидание нажатия клавиши и закрытие всех окон
+cv2.waitKey(0)
+cv2.destroyAllWindows()
