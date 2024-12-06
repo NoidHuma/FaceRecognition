@@ -29,3 +29,8 @@ face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 img = cv2.imread('images/sad4.jpg')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 faces = face_cascade.detectMultiScale(gray)
+
+if len(faces) > 0:
+    largest_face = max(faces, key=lambda face: face[2] * face[3])
+else:
+    largest_face = None
