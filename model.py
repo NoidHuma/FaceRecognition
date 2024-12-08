@@ -2,10 +2,8 @@ from keras import layers
 from keras.preprocessing.image import ImageDataGenerator
 from keras import models
 
-
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 import tensorflow as tf
-
 
 train_path = 'dataset/train'
 val_path = 'dataset/test'
@@ -16,16 +14,16 @@ val_datagen = ImageDataGenerator(rescale=1. / 255)
 train_gen = train_datagen.flow_from_directory(
     train_path,
     target_size=(48, 48),
-    batch_size=64,
+    batch_size=32,
     color_mode="grayscale",
-    class_mode='categorical')
+    class_mode='sparse')
 
 val_gen = val_datagen.flow_from_directory(
     val_path,
     target_size=(48, 48),
-    batch_size=64,
+    batch_size=32,
     color_mode="grayscale",
-    class_mode='categorical')
+    class_mode='sparse')
 
 emotions = list(train_gen.class_indices.keys())
 print(emotions)
@@ -33,7 +31,8 @@ print(emotions)
 model = models.Sequential()
 
 # block 1
-model.add(layers.Conv2D(32, (3, 3), padding='same', kernel_initializer='he_normal', activation='elu', input_shape=(48, 48, 1)))
+model.add(layers.Conv2D(32, (3, 3), padding='same', kernel_initializer='he_normal', activation='elu',
+                        input_shape=(48, 48, 1)))
 model.add(layers.BatchNormalization())
 model.add(layers.Conv2D(32, (3, 3), padding='same', kernel_initializer='he_normal', activation='elu'))
 model.add(layers.BatchNormalization())
@@ -94,28 +93,30 @@ model.add(layers.Dense(7, activation='softmax'))
 
 model.compile(
     optimizer='adam',
-    loss='categorical_crossentropy',
+    loss='sparse_categorical_crossentropy',
     metrics=['accuracy']
 )
 
 
-class MyCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        if logs is None:
-            logs = {}
-        if logs.get('val_accuracy') > 0.95:
-            print('\nValidation accuracy has reached 95% so, stopping further training.')
-            self.model.stop_training = True
+checkpoint = ModelCheckpoint('my_model.h5',
+                             monitor='val_loss',
+                             mode='min',
+                             save_best_only=True,
+                             verbose=1)
 
+reduce_lr = ReduceLROnPlateau(monitor='val_loss',
+                              factor=0.2,
+                              patience=5,
+                              verbose=1,
+                              min_lr=1e-7)
+callbacks = [checkpoint, reduce_lr]
 
-es = EarlyStopping(patience=3, monitor='val_accuracy', restore_best_weights=True)
-lr = ReduceLROnPlateau(monitor='val_loss', patience=2, factor=0.5, verbose=1)
 
 history = model.fit(train_gen,
                     validation_data=val_gen,
                     epochs=40,
                     verbose=1,
-                    callbacks=[es, lr, MyCallback()])
+                    callbacks=callbacks)
 
 # Сохранение всей модели
 model.save('test_model1.keras')
