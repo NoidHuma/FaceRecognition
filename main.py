@@ -1,67 +1,60 @@
-import numpy as np
-
-import cv2
-
 import os
-
+import cv2
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from PIL import Image, ImageTk
+import main_image  # Импортируем модуль с функцией img_recognition
+import main_video  # Импортируем модуль с функцией video_recognition
 from keras.models import load_model
 
-import warnings
 
-warnings.filterwarnings('ignore')
+class EmotionRecognitionApp:
+    model = load_model('my_model.h5')
+    classes = os.listdir("dataset_mini/train")
+    face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-model = load_model('my_model.h5')
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Emotion Recognition App")
 
-classes = os.listdir("dataset_mini/train")
-print(classes)
+        self.img = None  # Переменная для хранения выбранного изображения
+
+        # Кнопка "Выбрать изображение"
+        self.select_button = tk.Button(root, text="Выбрать изображение", command=self.select_image)
+        self.select_button.pack(pady=10)
+
+        # Метка для статуса изображения
+        self.status_label = tk.Label(root, text="Изображение не выбрано", fg="red")
+        self.status_label.pack(pady=10)
+
+        # Кнопка "Распознать эмоцию на изображении"
+        self.recognize_button = tk.Button(root, text="Распознать эмоцию на изображении", command=self.recognize_emotion,
+                                          state=tk.DISABLED)
+        self.recognize_button.pack(pady=10)
+
+        # Кнопка "Распознавать эмоции с видеопотока"
+        self.video_button = tk.Button(root, text="Распознавать эмоции с видеопотока", command=self.video_recognition)
+        self.video_button.pack(pady=10)
+
+    def select_image(self):
+        file_path = filedialog.askopenfilename(title="Выберите изображение",
+                                               filetypes=[("Image Files", "*.jpg;*.jpeg;*.png")])
+        if file_path:
+            self.img = file_path  # Сохраняем путь к изображению
+            self.status_label.config(text="Изображение выбрано", fg="green")
+            self.recognize_button.config(state=tk.NORMAL)  # Активируем кнопку распознавания
+
+    def recognize_emotion(self):
+        if self.img:
+            main_image.img_recognition(self.img, self.model, self.classes, self.face_cascade)  # Вызываем функцию распознавания эмоции
+        else:
+            messagebox.showerror("Ошибка", "Пожалуйста, выберите изображение.")
+
+    def video_recognition(self):
+        main_video.video_recognition(self.model, self.classes, self.face_cascade)  # Вызываем функцию распознавания эмоций с видеопотока
 
 
-def plot_image(img, emoj):
-    wmin = 256
-    hmin = 256
-
-    emoj = cv2.resize(emoj, (wmin, hmin))
-    img = cv2.resize(img, (wmin, hmin))
-    cv2.imshow('Images', cv2.hconcat([img, emoj]))
-
-
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
-
-img = cv2.imread('images/surprise1.png')
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-faces = face_cascade.detectMultiScale(gray)
-
-if len(faces) > 0:
-    for i, (x, y, w, h) in enumerate(faces):
-        # Извлечение лица из изображения
-        face = img[y:y + h, x:x + w]
-
-        # Отображение лица в отдельном окне
-        cv2.imshow(f'Face {i + 1}', face)
-else:
-    print("Лица не найдены.")
-
-if len(faces) > 0:
-    largest_face = max(faces, key=lambda face: face[2] * face[3])
-else:
-    largest_face = None
-
-if largest_face is not None:
-    x, y, w, h = largest_face
-
-    gray = cv2.resize(gray[x:x + w, y:y + h], (48, 48))
-    gray = np.expand_dims(gray, axis=-1)
-    gray = np.expand_dims(gray, axis=0)
-
-    pred = model.predict(gray)
-    idx = pred.argmax(axis=-1)[0]
-
-    print(classes[idx])
-    emoj = cv2.imread(f'emojis/{classes[idx]}.jpg')
-
-    plot_image(img, emoj)
-else:
-    print("Лица не найдены")
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = EmotionRecognitionApp(root)
+    root.mainloop()
