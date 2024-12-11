@@ -7,12 +7,13 @@ import os
 from keras.models import load_model
 
 import warnings
+
 warnings.filterwarnings('ignore')
 
+model = load_model('my_model.h5')
 
-model = load_model('my_model.keras')
-
-classes = os.listdir("dataset/train")
+classes = os.listdir("dataset_mini/train")
+print(classes)
 
 
 def plot_image(img, emoj):
@@ -26,9 +27,19 @@ def plot_image(img, emoj):
 
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-img = cv2.imread('images/sad4.jpg')
+img = cv2.imread('images/surprise1.png')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 faces = face_cascade.detectMultiScale(gray)
+
+if len(faces) > 0:
+    for i, (x, y, w, h) in enumerate(faces):
+        # Извлечение лица из изображения
+        face = img[y:y + h, x:x + w]
+
+        # Отображение лица в отдельном окне
+        cv2.imshow(f'Face {i + 1}', face)
+else:
+    print("Лица не найдены.")
 
 if len(faces) > 0:
     largest_face = max(faces, key=lambda face: face[2] * face[3])
@@ -38,7 +49,7 @@ else:
 if largest_face is not None:
     x, y, w, h = largest_face
 
-    gray = cv2.resize(gray[x:x + w - 10, y:y + h + 10], (48, 48))
+    gray = cv2.resize(gray[x:x + w, y:y + h], (48, 48))
     gray = np.expand_dims(gray, axis=-1)
     gray = np.expand_dims(gray, axis=0)
 
@@ -52,6 +63,5 @@ if largest_face is not None:
 else:
     print("Лица не найдены")
 
-# Ожидание нажатия клавиши и закрытие всех окон
 cv2.waitKey(0)
 cv2.destroyAllWindows()
