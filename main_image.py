@@ -1,23 +1,25 @@
 import numpy as np
 import cv2
 import warnings
+from PIL import Image, ImageTk
+
 
 warnings.filterwarnings('ignore')
 
 
-def plot_image(img, emoj):
-    wmin = 256
-    hmin = 256
+def plot_image(app, result_name):
+    img = app.img.resize((256, 256))
+    emoj = Image.open(f'emojis/{result_name}.jpg').resize((256, 256))
+    app.img_photo = ImageTk.PhotoImage(img)
+    app.emoj_photo = ImageTk.PhotoImage(emoj)
+    app.img_label.config(image=app.img_photo)
+    app.emoj_label.config(image=app.emoj_photo)
 
-    emoj = cv2.resize(emoj, (wmin, hmin))
-    img = cv2.resize(img, (wmin, hmin))
-    cv2.imshow('Images', cv2.hconcat([img, emoj]))
 
+def img_recognition(app):
 
-def img_recognition(img, model, classes, face_cascade):
-    img = cv2.imread(img)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    faces = face_cascade.detectMultiScale(gray)
+    gray = cv2.cvtColor(np.array(app.img), cv2.COLOR_BGR2GRAY)
+    faces = app.face_cascade.detectMultiScale(gray)
 
     if len(faces) > 0:
         largest_face = max(faces, key=lambda face: face[2] * face[3])
@@ -31,14 +33,14 @@ def img_recognition(img, model, classes, face_cascade):
         gray = np.expand_dims(gray, axis=-1)
         gray = np.expand_dims(gray, axis=0)
 
-        pred = model.predict(gray)
+        pred = app.model.predict(gray)
         idx = pred.argmax(axis=-1)[0]
 
-        emoj = cv2.imread(f'emojis/{classes[idx]}.jpg')
+        result_name = app.classes[idx]
 
-        plot_image(img, emoj)
     else:
-        print("Лица не найдены")
+        result_name = "NofaceDetected"
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    plot_image(app, result_name)
+
+
